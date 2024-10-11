@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, HeartOutlined } from '@ant-design/icons'
+import { DeleteOutlined, EditOutlined, HeartOutlined, SaveOutlined } from '@ant-design/icons'
 import { Button } from 'antd'
 import Input from 'antd/es/input/Input'
 import React, { useReducer } from 'react'
@@ -10,12 +10,30 @@ function reducer(state, action) {
             todos: [...state.todos, action.payload],
             likedList: state.likedList
         }
-    } else if (action.type == "LIKED") {
+    }
+     else if (action.type == "LIKED") {
         return {
-            todos: state.todos,
-            likedList: [...state.likedList, action.payload]
+            todos: state.todos.map(item => {
+                if (item.id === action.payload) {
+                    return { ...item, liked: !item.liked }
+                }
+                return item
+            }),
+            likedList: state.likedList
         }
-    }else if (action.type == "DELETE"){
+    }
+     else if (action.type == "SAVED") {
+        return {
+            todos: state.todos.map(item => {
+                if (item.id === action.payload) {
+                    return { ...item, saved: !item.saved }
+                }
+                return item
+            }),
+            likedList: state.likedList
+        }
+    }
+     else if (action.type == "DELETE"){
         const deleteIndex = state.todos.findIndex(item => item.id == action.payload)
         state.todos.splice(deleteIndex, 1)
         return {
@@ -36,9 +54,12 @@ function reducer(state, action) {
             e.preventDefault()
             const newValue = {
                 id: data.todos.length + 1,
-                value: e.target.todo.value
+                value: e.target.todo.value,
+                liked:false,
+                saved:false
             }
             dispatch({ type: "CREATE", payload: newValue })
+            e.target.todo.value = ""
         }
         console.log(data)
 
@@ -53,7 +74,8 @@ function reducer(state, action) {
                         <li className='p-2 rounded-md flex items-center justify-between bg-slate-300' key={index}>
                             <div>{index + 1}. {item.value}</div>
                             <div className='flex items-center gap-5'>
-                                <button onClick={() => dispatch({ type: "LIKED", payload: item })}><HeartOutlined /></button>
+                                <button onClick={() => dispatch({ type: "SAVED", payload: item.id })}><SaveOutlined style={{ color: item.saved ? 'green' : 'black' }} /></button>
+                                <button onClick={() => dispatch({ type: "LIKED", payload: item.id })}><HeartOutlined style={{ color: item.liked ? 'red' : 'black' }}/></button>
                                 <button onClick={() => dispatch({ type: "DELETE", payload: item.id })}><DeleteOutlined /></button>
                                 <button><EditOutlined /></button>
                             </div>
